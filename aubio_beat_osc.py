@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser()
 sp = parser.add_subparsers(dest="command")
 
 beat_parser = sp.add_parser("beat", help="Start beat detection")
-beat_parser.add_argument("-c", "--client", help="OSC Client address (multiple can be provided)", nargs=3,
+beat_parser.add_argument("-s", "--server", help="OSC server address (multiple can be provided)", nargs=3,
                          action="append",
                          metavar=("IP", "PORT", "ADDRESS"), required=True)
 beat_parser.add_argument("-b", "--bufsize", help="Size of audio buffer for beat detection (default: 128)", default=128,
@@ -66,7 +66,7 @@ class BeatDetector:
         fft_size: int = self.buf_size * 2
         self.tempo: aubio.tempo = aubio.tempo("default", fft_size, self.buf_size, samplerate)
 
-        # Set up OSC clients to send beat data to
+        # Set up OSC servers to send beat data to
         self.osc_clients: List[Tuple[SimpleUDPClient, str]] = [(SimpleUDPClient(x.ip, x.port), x.address) for x in
                                                                self.client_infos]
 
