@@ -46,6 +46,7 @@ jobs:
         run: |
           brew update
           brew install portaudio
+          brew install libsndfile
           
       - name: Setup Python
         uses: actions/setup-python@v4
