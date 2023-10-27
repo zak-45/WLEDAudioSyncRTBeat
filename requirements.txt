@@ -2,3 +2,4 @@ pyaudio
 aubio
 python-osc
 numpy
+imageio
