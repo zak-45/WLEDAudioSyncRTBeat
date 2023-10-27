@@ -46,8 +46,7 @@ jobs:
         run: |
           brew update
           brew install portaudio
-          brew install libsndfile
-          
+         
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -76,14 +75,14 @@ jobs:
           windows-icon-from-ico: assets/WLEDAudioSync30.ico
           macos-app-icon: assets/WLEDAudioSync30.ico
           onefile: true
-          output-file: WLEDAudioSyncRTBPM-${{runner.os}}
+          output-file: WLEDAudioSyncRTBeat-${{runner.os}}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDAudioSyncRTBPM-${{runner.os}}**'
+          path: 'build/WLEDAudioSyncRTBeat-${{runner.os}}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -91,5 +90,5 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDAudioSyncRTBPM-${{runner.os}}**'
+          artifacts: 'build/WLEDAudioSyncRTBeat-${{runner.os}}**'
           
