@@ -6,9 +6,14 @@ On every beat, the current BPM is sent to one or more OSC servers.
 
 ## Installation
 
+Win / Mac / Linux
 ```
-pip install aubio-beat-osc 
+
 ```
+
+Other OS (with Python installed)
+
+see : https://github.com/DrLuke/aubio-beat-osc
 
 ## Usage
 
@@ -47,8 +52,8 @@ Run `aubio-beat-osc list` to get all available devices.
 ## Example
 
 ```
-$ aubio-beat-osc beat -c 127.0.0.1 31337 /foo/bar -c 10.10.13.37 12345 /test/baz -v
+$ aubio-beat-osc beat -c 127.0.0.1 12000 /WLEDAudioSync/BPM -c 10.10.13.37 12345 /test/baz -v
 ```
 
-This will send beat messages to the OSC address `/foo/bar` on `127.0.0.1:31337` and `/test/baz` on `10.10.13.37:12345`.
+This will send beat messages to the OSC address `/WLEDAudioSync/BPM ` on `127.0.0.1:21000` and `/test/baz` on `10.10.13.37:12345`.
 Additionally the current BPM will be printed to stdout.
