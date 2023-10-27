@@ -55,5 +55,5 @@ Run `aubio-beat-osc list` to get all available devices.
 $ aubio-beat-osc beat -c 127.0.0.1 12000 /WLEDAudioSync/BPM -c 10.10.13.37 12345 /test/baz -v
 ```
 
-This will send beat messages to the OSC address `/WLEDAudioSync/BPM ` on `127.0.0.1:21000` and `/test/baz` on `10.10.13.37:12345`.
+This will send beat messages to the OSC address `/WLEDAudioSync/BPM ` on `127.0.0.1:12000` and `/test/baz` on `10.10.13.37:12345`.
 Additionally the current BPM will be printed to stdout.
