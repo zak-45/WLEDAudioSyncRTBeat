@@ -69,7 +69,7 @@ jobs:
         uses: Nuitka/Nuitka-Action@v1.0
         with:
           nuitka-version: main
-          script-name: aubio_beat_osc
+          script-name: aubio_beat_osc.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
           windows-icon-from-ico: assets/WLEDAudioSync30.ico
