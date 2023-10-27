@@ -24,7 +24,7 @@ see : https://github.com/DrLuke/aubio-beat-osc
 ## Usage
 
 ```
-WLEDAudioSyncRTBeat beat|list [-h] -s IP PORT ADDRESS [-b BUFSIZE] [-v] [-d DEVICE]
+WLEDAudioSyncRTBeat-{OS} beat|list [-h] -s IP PORT ADDRESS [-b BUFSIZE] [-v] [-d DEVICE]
 
 optional arguments:
   -h, --help            show this help message and exit
