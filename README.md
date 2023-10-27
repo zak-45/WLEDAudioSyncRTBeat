@@ -10,8 +10,11 @@ This should help on the installation and setup of [WLEDAudioSync Chataigne Modul
 ## Installation
 
 Win / Mac / Linux
-```
 
+Take your release from there : https://github.com/zak-45/WLEDAudioSyncRTBeat/releases
+
+```
+This is a portable version, put it on a nice folder and just run it according your OS.
 ```
 
 Other OS (with Python installed)
@@ -21,7 +24,7 @@ see : https://github.com/DrLuke/aubio-beat-osc
 ## Usage
 
 ```
-aubio-beat-osc beat [-h] -s IP PORT ADDRESS [-b BUFSIZE] [-v] [-d DEVICE]
+WLEDAudioSyncRTBeat beat|list [-h] -s IP PORT ADDRESS [-b BUFSIZE] [-v] [-d DEVICE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -50,12 +53,12 @@ Output a handy beat indicator and the current BPM to stdout.
 ### `-d`/`--device`
 Specify the index of input device to be used.
 If not provided, the default system input is used.  
-Run `aubio-beat-osc list` to get all available devices.
+Run `WLEDAudioSyncRTBeat list` to get all available devices.
 
 ## Example
 
 ```
-$ aubio-beat-osc beat -s 127.0.0.1 12000 /WLEDAudioSync/BPM -s 10.10.13.37 12345 /test/baz -v
+$ WLEDAudioSyncRTBeat-Linux beat -s 127.0.0.1 12000 /WLEDAudioSync/BPM -s 10.10.13.37 12345 /test/baz -v
 ```
 
 This will send beat messages to the OSC address `/WLEDAudioSync/BPM ` on `127.0.0.1:12000` and `/test/baz` on `10.10.13.37:12345`.
