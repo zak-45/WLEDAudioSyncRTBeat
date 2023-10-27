@@ -108,7 +108,7 @@ def main():
 
     if args.command == "beat":
         # Pack data from arguments into ClientInfo objects
-        client_infos: List[ClientInfo] = [ClientInfo(x[0], int(x[1]), x[2]) for x in args.client]
+        client_infos: List[ClientInfo] = [ClientInfo(x[0], int(x[1]), x[2]) for x in args.server]
 
         bd = BeatDetector(args.bufsize, client_infos)
 
