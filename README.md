@@ -25,8 +25,8 @@ aubio-beat-osc beat [-h] -c IP PORT ADDRESS [-b BUFSIZE] [-v] [-d DEVICE]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -c IP PORT ADDRESS, --client IP PORT ADDRESS
-                        OSC Client address (multiple can be provided)
+  -s IP PORT ADDRESS, --server IP PORT ADDRESS
+                        OSC Server address (multiple can be provided)
   -b BUFSIZE, --bufsize BUFSIZE
                         Size of audio buffer for beat detection (default: 128)
   -v, --verbose         Print BPM on beat
@@ -35,8 +35,8 @@ optional arguments:
 
 ```
 
-### `-c`/`--client`
-Add an `IP`, `PORT` and OSC `ADDRESS` to which the BPM beat signal will be sent to. Example: `-c 127.0.0.1 31337 /foo/beat`
+### `-s`/`--server`
+Add an `IP`, `PORT` and OSC `ADDRESS` to which the BPM beat signal will be sent to. Example: `-s 127.0.0.1 21000 /foo/beat`
 
 ### `-b`/`--bufsize`
 Select the size of the buffer used for beat detection.
@@ -55,7 +55,7 @@ Run `aubio-beat-osc list` to get all available devices.
 ## Example
 
 ```
-$ aubio-beat-osc beat -c 127.0.0.1 12000 /WLEDAudioSync/BPM -c 10.10.13.37 12345 /test/baz -v
+$ aubio-beat-osc beat -s 127.0.0.1 12000 /WLEDAudioSync/BPM -s 10.10.13.37 12345 /test/baz -v
 ```
 
 This will send beat messages to the OSC address `/WLEDAudioSync/BPM ` on `127.0.0.1:12000` and `/test/baz` on `10.10.13.37:12345`.
