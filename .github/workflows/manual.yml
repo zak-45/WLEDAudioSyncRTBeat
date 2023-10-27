@@ -64,22 +64,20 @@ jobs:
         uses: Nuitka/Nuitka-Action@v1.0
         with:
           nuitka-version: main
-          script-name: main.py
+          script-name: aubio_beat_osc
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
           windows-icon-from-ico: assets/WLEDAudioSync30.ico
           macos-app-icon: assets/WLEDAudioSync30.ico
           onefile: true
-          onefile-tempdir-spec: ./WLEDAudioSyncRTMood
-          include-data-dir: assets=assets
-          output-file: WLEDAudioSyncRTMood-${{runner.os}}
+          output-file: WLEDAudioSyncRTBPM-${{runner.os}}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDAudioSyncRTMood-${{runner.os}}**'
+          path: 'build/WLEDAudioSyncRTBPM-${{runner.os}}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -87,5 +85,5 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDAudioSyncRTMood-${{runner.os}}**'
+          artifacts: 'build/WLEDAudioSyncRTBPM-${{runner.os}}**'
           
