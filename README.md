@@ -21,7 +21,7 @@ see : https://github.com/DrLuke/aubio-beat-osc
 ## Usage
 
 ```
-aubio-beat-osc beat [-h] -c IP PORT ADDRESS [-b BUFSIZE] [-v] [-d DEVICE]
+aubio-beat-osc beat [-h] -s IP PORT ADDRESS [-b BUFSIZE] [-v] [-d DEVICE]
 
 optional arguments:
   -h, --help            show this help message and exit
