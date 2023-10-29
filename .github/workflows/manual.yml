@@ -47,7 +47,6 @@ jobs:
           brew update
           brew install portaudio
           brew install libsndfile
-          brew install ffmpeg
          
       - name: Setup Python
         uses: actions/setup-python@v4
