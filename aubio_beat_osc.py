@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser()
 sp = parser.add_subparsers(dest="command")
 
 beat_parser = sp.add_parser("beat", help="Start beat detection")
-beat_parser.add_argument("-s", "--server", help="OSC server address (multiple can be provided)", nargs=3,
+beat_parser.add_argument("-c", "--client", help="OSC Client address (multiple can be provided)", nargs=3,
                          action="append",
                          metavar=("IP", "PORT", "ADDRESS"), required=True)
 beat_parser.add_argument("-b", "--bufsize", help="Size of audio buffer for beat detection (default: 128)", default=128,
@@ -66,7 +66,7 @@ class BeatDetector:
         fft_size: int = self.buf_size * 2
         self.tempo: aubio.tempo = aubio.tempo("default", fft_size, self.buf_size, samplerate)
 
-        # Set up OSC servers to send beat data to
+        # Set up OSC clients to send beat data to
         self.osc_clients: List[Tuple[SimpleUDPClient, str]] = [(SimpleUDPClient(x.ip, x.port), x.address) for x in
                                                                self.client_infos]
 
@@ -108,16 +108,16 @@ def main():
 
     if args.command == "beat":
         # Pack data from arguments into ClientInfo objects
-        client_infos: List[ClientInfo] = [ClientInfo(x[0], int(x[1]), x[2]) for x in args.server]
+        client_infos: List[ClientInfo] = [ClientInfo(x[0], int(x[1]), x[2]) for x in args.client]
 
         bd = BeatDetector(args.bufsize, client_infos)
 
         # Audio processing happens in separate thread, so put this thread to sleep
         if os.name == 'nt':  # Windows is not able to pause the main thread :(
             while True:
-                time.sleep(1)
+                time.sleep(10)
         else:
-            signal.pause()
+            signal.pause()        
 
 
 if __name__ == "__main__":
