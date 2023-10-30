@@ -12,7 +12,7 @@ from pythonosc.udp_client import SimpleUDPClient
 from typing import List, NamedTuple, Tuple
 
 
-class ClientInfo(NamedTuple):
+class ServerInfo(NamedTuple):
     ip: str
     port: int
     address: str
@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser()
 sp = parser.add_subparsers(dest="command")
 
 beat_parser = sp.add_parser("beat", help="Start beat detection")
-beat_parser.add_argument("-c", "--client", help="OSC Client address (multiple can be provided)", nargs=3,
+beat_parser.add_argument("-s", "--server", help="OSC Server address (multiple can be provided)", nargs=3,
                          action="append",
                          metavar=("IP", "PORT", "ADDRESS"), required=True)
 beat_parser.add_argument("-b", "--bufsize", help="Size of audio buffer for beat detection (default: 128)", default=128,
@@ -46,9 +46,9 @@ class BeatPrinter:
 
 
 class BeatDetector:
-    def __init__(self, buf_size: int, client_infos: List[ClientInfo]):
+    def __init__(self, buf_size: int, server_info: List[ServerInfo]):
         self.buf_size: int = buf_size
-        self.client_infos: List[ClientInfo] = client_infos
+        self.server_info: List[ServerInfo] = server_info
 
         # Set up pyaudio and aubio beat detector
         self.p: pyaudio.PyAudio = pyaudio.PyAudio()
@@ -66,9 +66,9 @@ class BeatDetector:
         fft_size: int = self.buf_size * 2
         self.tempo: aubio.tempo = aubio.tempo("default", fft_size, self.buf_size, samplerate)
 
-        # Set up OSC clients to send beat data to
-        self.osc_clients: List[Tuple[SimpleUDPClient, str]] = [(SimpleUDPClient(x.ip, x.port), x.address) for x in
-                                                               self.client_infos]
+        # Set up OSC servers to send beat data to
+        self.osc_servers: List[Tuple[SimpleUDPClient, str]] = [(SimpleUDPClient(x.ip, x.port), x.address) for x in
+                                                               self.server_info]
 
         self.spinner: BeatPrinter = BeatPrinter()
 
@@ -78,8 +78,8 @@ class BeatDetector:
         if beat[0]:
             if args.verbose:
                 self.spinner.print_bpm(self.tempo.get_bpm())
-            for client in self.osc_clients:
-                client[0].send_message(client[1], self.tempo.get_bpm())
+            for server in self.osc_servers:
+                server[0].send_message(server[1], self.tempo.get_bpm())
 
         return None, pyaudio.paContinue  # Tell pyAudio to continue
 
@@ -107,10 +107,10 @@ def main():
         return
 
     if args.command == "beat":
-        # Pack data from arguments into ClientInfo objects
-        client_infos: List[ClientInfo] = [ClientInfo(x[0], int(x[1]), x[2]) for x in args.client]
+        # Pack data from arguments into ServerInfo objects
+        server_info: List[ServerInfo] = [ServerInfo(x[0], int(x[1]), x[2]) for x in args.server]
 
-        bd = BeatDetector(args.bufsize, client_infos)
+        bd = BeatDetector(args.bufsize, server_info)
 
         # Audio processing happens in separate thread, so put this thread to sleep
         if os.name == 'nt':  # Windows is not able to pause the main thread :(
