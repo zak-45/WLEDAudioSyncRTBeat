@@ -1,4 +1,5 @@
 # Onset Beat Detection to OSC
+[![Cross Compile Manual workflow](https://github.com/zak-45/WLEDAudioSyncRTBeat/actions/workflows/manual.yml/badge.svg)](https://github.com/zak-45/WLEDAudioSyncRTBeat/actions/workflows/manual.yml)
 
 This is a simple beat detector built with [aubio](https://github.com/aubio/aubio).
 It will detect the beat and BPM on the default audio input.
