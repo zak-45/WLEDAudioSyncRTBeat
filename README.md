@@ -64,3 +64,13 @@ $ WLEDAudioSyncRTBeat-Linux beat -s 127.0.0.1 12000 /WLEDAudioSync/BPM -s 10.10.
 
 This will send beat messages to the OSC address `/WLEDAudioSync/BPM ` on `127.0.0.1:12000` and `/test/baz` on `10.10.13.37:12345`.
 Additionally the current BPM will be printed to stdout.
+
+## Info 
+
+```
+First time you run WLEDAudioSyncRTBeat-{OS},
+this will create folder ./WLEDAudioSyncRTBeat and extract all files on it.
+
+To save some space and time,
+you can then delete WLEDAudioSyncRTBeat-* and run the app from created folder.
+```
