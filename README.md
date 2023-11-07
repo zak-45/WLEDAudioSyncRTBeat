@@ -8,6 +8,8 @@ On every beat, the current BPM is sent to one or more OSC servers.
 Main purpose of this repository is to create binary from :  https://github.com/DrLuke/aubio-beat-osc. 
 This should help on the installation and setup of [WLEDAudioSync Chataigne Module](https://github.com/zak-45/WLEDAudioSync-Chataigne-Module).
 
+You can see a demo here : [WLEDAudioSyncRTBeat demo](https://youtu.be/VXM_zEzKo6M)
+
 ## Installation
 
 Win / Mac / Linux
