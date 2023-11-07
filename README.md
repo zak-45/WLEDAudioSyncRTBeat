@@ -35,7 +35,7 @@ optional arguments:
                         OSC Server address (multiple can be provided)
   -b BUFSIZE, --bufsize BUFSIZE
                         Size of audio buffer for beat detection (default: 128)
-  -v, --verbose         Print BPM on beat
+  -v, --verbose         Print BPM on beat / dB
   -d DEVICE, --device DEVICE
                         Input device index (use list command to see available devices)
 
