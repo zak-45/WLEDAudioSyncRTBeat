@@ -51,7 +51,7 @@ Refer to the [aubio](https://github.com/aubio/aubio) documentation of the tempo 
 Example: `-b 128`
 
 ### `-v`/`--verbose`
-Output a handy beat indicator and the current BPM to stdout.
+Output a handy beat indicator and the current BPM / dB to stdout.
 
 ### `-d`/`--device`
 Specify the index of input device to be used.
