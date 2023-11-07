@@ -40,8 +40,8 @@ class BeatPrinter:
         self.state: int = 0
         self.spinner = "▚▞"
 
-    def print_bpm(self, bpm: float) -> None:
-        print(f"{self.spinner[self.state]}\t{bpm:.1f} BPM")
+    def print_bpm(self, bpm: float, dbs: float) -> None:
+        print(f"{self.spinner[self.state]}\t{bpm:.1f} BPM\t{dbs:.1f} dB")
         self.state = (self.state + 1) % len(self.spinner)
 
 
@@ -75,9 +75,12 @@ class BeatDetector:
     def _pyaudio_callback(self, in_data, frame_count, time_info, status):
         signal = np.frombuffer(in_data, dtype=np.float32)
         beat = self.tempo(signal)
+        # level = aubio.level_lin(aubio.fvec(signal))
+        dbs = aubio.db_spl(aubio.fvec(signal))
+        
         if beat[0]:
             if args.verbose:
-                self.spinner.print_bpm(self.tempo.get_bpm())
+                self.spinner.print_bpm(self.tempo.get_bpm(), dbs)
             for server in self.osc_servers:
                 server[0].send_message(server[1], self.tempo.get_bpm())
 
