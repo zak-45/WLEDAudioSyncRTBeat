@@ -118,7 +118,7 @@ def main():
         # Audio processing happens in separate thread, so put this thread to sleep
         if os.name == 'nt':  # Windows is not able to pause the main thread :(
             while True:
-                time.sleep(10)
+                time.sleep(0.1)
         else:
             signal.pause()        
 
