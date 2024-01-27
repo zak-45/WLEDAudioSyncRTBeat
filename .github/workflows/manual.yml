@@ -69,7 +69,7 @@ jobs:
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@v1.0
         with:
-          nuitka-version: 1.8.5
+          nuitka-version: main
           script-name: aubio_beat_osc.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
