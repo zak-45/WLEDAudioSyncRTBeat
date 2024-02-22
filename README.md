@@ -28,7 +28,7 @@ This is a portable version, put it on a nice folder and just run it according yo
 ** INFO **
 ---
 Some anti virus could warn you, this is false positive.
-If yo do not trust you can still proceed with step below.
+If you do not trust you can still proceed with step below.
 ---
 
 Other OS / all OS with Python installed 
