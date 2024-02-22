@@ -4,6 +4,7 @@ import aubio
 import signal
 import os
 import time
+import sys
 
 import argparse
 
@@ -105,6 +106,7 @@ class BeatDetector:
     def __del__(self):
         self.stream.close()
         self.audio.terminate()
+        print('--- Stopped ---')
 
 
 # find all devices, print info
@@ -133,13 +135,23 @@ def main():
 
         bd = BeatDetector(args.bufsize, server_info)
 
+        # capture ctrl+c to stop gracefully process
+        def signal_handler(none, frame):
+            bd.stream.close()
+            bd.audio.terminate()
+            print(' ===> Ctrl + C')
+            sys.exit(0)
+
+        signal.signal(signal.SIGINT, signal_handler)
+
         # Audio processing happens in separate thread, so put this thread to sleep
         if os.name == 'nt':  # Windows is not able to pause the main thread :(
             while True:
-                time.sleep(0.1)
+                time.sleep(1)
         else:
             signal.pause()        
-
+    else:
+        print('Nothing to do. Use -h for help')
 
 # main run
 if __name__ == "__main__":
