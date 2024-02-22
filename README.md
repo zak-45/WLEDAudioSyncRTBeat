@@ -28,9 +28,9 @@ Install required modules
 pip install -r requirements.txt
 ```
 
-download aubio_beat_osc.py file and run it:
+download WLEDAudioSyncRTBeat.py file and run it:
 ```
-python aubio_beat_osc
+python WLEDAudioSyncRTBeat.py
 ``` 
 
 ## Usage
