@@ -70,7 +70,6 @@ class BeatDetector:
             input_device_index=args.device
         )
 
-
         fft_size: int = self.buf_size * 2  #
 
         # tempo detection
@@ -152,6 +151,7 @@ def main():
             signal.pause()        
     else:
         print('Nothing to do. Use -h for help')
+
 
 # main run
 if __name__ == "__main__":
