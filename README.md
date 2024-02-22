@@ -25,6 +25,12 @@ No python need.
 This is a portable version, put it on a nice folder and just run it according your OS.
 ```
 
+** INFO **
+---
+Some anti virus could warn you, this is false positive.
+If yo do not trust you can still proceed with step below.
+---
+
 Other OS / all OS with Python installed 
 
 Install required modules
