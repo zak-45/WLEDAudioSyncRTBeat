@@ -17,12 +17,21 @@ Win / Mac / Linux
 Take your release from there : https://github.com/zak-45/WLEDAudioSyncRTBeat/releases
 
 ```
+No python need.
 This is a portable version, put it on a nice folder and just run it according your OS.
 ```
 
-Other OS (with Python installed)
+Other OS / all OS with Python installed 
 
-see : https://github.com/DrLuke/aubio-beat-osc
+Install required modules
+```
+pip install -r requirements.txt
+```
+
+download aubio_beat_osc.py file and run it:
+```
+python aubio_beat_osc
+``` 
 
 ## Usage
 
