@@ -45,8 +45,7 @@ args = parser.parse_args()
 class BeatPrinter:
     def __init__(self):
         self.state: int = 0
-        self.spinner = "▚▞"
-
+        self.spinner = "¼▚▞▚"
     def print_bpm(self, bpm: float, dbs: float) -> None:
         print(f"{self.spinner[self.state]}\t{bpm:.1f} BPM\t{dbs:.1f} dB")
         self.state = (self.state + 1) % len(self.spinner)
