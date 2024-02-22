@@ -70,7 +70,7 @@ class BeatDetector:
             input_device_index=args.device
         )
 
-        fft_size: int = self.buf_size * 4  # or * 2 but less accurate
+        fft_size: int = self.buf_size * 2  #
 
         # tempo detection
         self.tempo: aubio.tempo = aubio.tempo("default", fft_size, self.buf_size, samplerate)
