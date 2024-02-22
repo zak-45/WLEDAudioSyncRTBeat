@@ -21,17 +21,23 @@ class ServerInfo(NamedTuple):
 parser = argparse.ArgumentParser()
 sp = parser.add_subparsers(dest="command")
 
-beat_parser = sp.add_parser("beat", help="Start beat detection")
-beat_parser.add_argument("-s", "--server", help="OSC Server address (multiple can be provided)", nargs=3,
+beat_parser = sp.add_parser("beat",
+                            help="Start beat detection")
+beat_parser.add_argument("-s", "--server",
+                         help="OSC Server address (multiple can be provided)", nargs=3,
                          action="append",
                          metavar=("IP", "PORT", "ADDRESS"), required=True)
-beat_parser.add_argument("-b", "--bufsize", help="Size of audio buffer for beat detection (default: 128)", default=128,
+beat_parser.add_argument("-b", "--bufsize",
+                         help="Size of audio buffer for beat detection (default: 512)", default=512,
                          type=int)
-beat_parser.add_argument("-v", "--verbose", help="Print BPM on beat", action="store_true")
-beat_parser.add_argument("-d", "--device", help="Input device index (use list command to see available devices)",
+beat_parser.add_argument("-v", "--verbose",
+                         help="Print BPM on beat", action="store_true")
+beat_parser.add_argument("-d", "--device",
+                         help="Input device index (use list command to see available devices)",
                          default=None, type=int)
 
-list_parser = sp.add_parser("list", help="Print a list of all available audio devices")
+list_parser = sp.add_parser("list",
+                            help="Print a list of all available audio devices")
 args = parser.parse_args()
 
 
@@ -51,9 +57,10 @@ class BeatDetector:
         self.server_info: List[ServerInfo] = server_info
 
         # Set up pyaudio and aubio beat detector
-        self.p: pyaudio.PyAudio = pyaudio.PyAudio()
+        self.audio: pyaudio.PyAudio = pyaudio.PyAudio()
         samplerate: int = 44100
-        self.stream: pyaudio.Stream = self.p.open(
+
+        self.stream: pyaudio.Stream = self.audio.open(
             format=pyaudio.paFloat32,
             channels=1,
             rate=samplerate,
@@ -63,24 +70,33 @@ class BeatDetector:
             input_device_index=args.device
         )
 
-        fft_size: int = self.buf_size * 2
+        fft_size: int = self.buf_size * 4  # or * 2 but less accurate
+
+        # tempo detection
         self.tempo: aubio.tempo = aubio.tempo("default", fft_size, self.buf_size, samplerate)
 
         # Set up OSC servers to send beat data to
         self.osc_servers: List[Tuple[SimpleUDPClient, str]] = [(SimpleUDPClient(x.ip, x.port), x.address) for x in
                                                                self.server_info]
 
+        # print info
         self.spinner: BeatPrinter = BeatPrinter()
 
+    # this one is called every time enough audio data has been read by the stream
     def _pyaudio_callback(self, in_data, frame_count, time_info, status):
-        signal = np.frombuffer(in_data, dtype=np.float32)
-        beat = self.tempo(signal)
-        # level = aubio.level_lin(aubio.fvec(signal))
-        dbs = aubio.db_spl(aubio.fvec(signal))
-        
+        # Interpret a buffer as a 1-dimensional array (aubio do not work with raw data)
+        audio_data = np.frombuffer(in_data, dtype=np.float32)
+        # true if beat present
+        beat = self.tempo(audio_data)
+
+        # if beat detected , calculate BPM and send to OSC
         if beat[0]:
+            # volume level in db
+            dbs = aubio.db_spl(aubio.fvec(audio_data))
+
             if args.verbose:
                 self.spinner.print_bpm(self.tempo.get_bpm(), dbs)
+
             for server in self.osc_servers:
                 server[0].send_message(server[1], self.tempo.get_bpm())
 
@@ -88,22 +104,24 @@ class BeatDetector:
 
     def __del__(self):
         self.stream.close()
-        self.p.terminate()
+        self.audio.terminate()
 
 
+# find all devices, print info
 def list_devices():
     print("Listing all available input devices:\n")
-    p = pyaudio.PyAudio()
-    info = p.get_host_api_info_by_index(0)
-    numdevices = info.get('deviceCount')
+    audio = pyaudio.PyAudio()
+    info = audio.get_host_api_info_by_index(0)
+    numberofdevices = info.get('deviceCount')
 
-    for i in range(0, numdevices):
-        if (p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
-            print(f"[{i}] {p.get_device_info_by_host_api_device_index(0, i).get('name')}")
+    for i in range(0, numberofdevices):
+        if (audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
+            print(f"[{i}] {audio.get_device_info_by_host_api_device_index(0, i).get('name')}")
 
     print("\nUse the number in the square brackets as device index")
 
 
+# main
 def main():
     if args.command == "list":
         list_devices()
@@ -123,5 +141,6 @@ def main():
             signal.pause()        
 
 
+# main run
 if __name__ == "__main__":
     main()
