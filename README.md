@@ -53,7 +53,7 @@ optional arguments:
   -s IP PORT ADDRESS, --server IP PORT ADDRESS
                         OSC Server address (multiple can be provided)
   -b BUFSIZE, --bufsize BUFSIZE
-                        Size of audio buffer for beat detection (default: 128)
+                        Size of audio buffer for beat detection (default: 512)
   -v, --verbose         Print BPM on beat / dB
   -d DEVICE, --device DEVICE
                         Input device index (use list command to see available devices)
