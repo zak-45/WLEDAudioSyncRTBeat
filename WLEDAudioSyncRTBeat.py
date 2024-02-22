@@ -83,7 +83,7 @@ class BeatDetector:
         # print info
         self.spinner: BeatPrinter = BeatPrinter()
 
-    # this one is called every time enough audio data has been read by the stream
+    # this one is called every time enough audio data (buf_size) has been read by the stream
     def _pyaudio_callback(self, in_data, frame_count, time_info, status):
         # Interpret a buffer as a 1-dimensional array (aubio do not work with raw data)
         audio_data = np.frombuffer(in_data, dtype=np.float32)
