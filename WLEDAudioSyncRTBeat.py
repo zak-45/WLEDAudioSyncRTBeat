@@ -70,6 +70,7 @@ class BeatDetector:
             input_device_index=args.device
         )
 
+
         fft_size: int = self.buf_size * 2  #
 
         # tempo detection
