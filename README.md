@@ -4,12 +4,14 @@
 This is a simple beat detector built with [aubio](https://github.com/aubio/aubio).
 It will detect the beat and BPM on the default audio input.
 On every beat, the current BPM is sent to one or more OSC servers.
+
+Command line only.
  
 This is a feature of [WLEDAudioSync Chataigne Module](https://github.com/zak-45/WLEDAudioSync-Chataigne-Module).
 
 You can see a demo here : [WLEDAudioSyncRTBeat demo](https://youtu.be/VXM_zEzKo6M)
 
-
+Chataigne view:
 ![image](https://github.com/zak-45/WLEDAudioSyncRTBeat/assets/121941293/89b89dbf-49bb-410e-8d7b-2c43357c5100)
 
 
