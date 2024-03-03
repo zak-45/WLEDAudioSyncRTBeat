@@ -136,6 +136,7 @@ def main():
 
         # capture ctrl+c to stop gracefully process
         def signal_handler(none, frame):
+            bd.stream.stop_stream()
             bd.stream.close()
             bd.audio.terminate()
             print(' ===> Ctrl + C')
