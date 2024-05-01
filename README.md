@@ -81,6 +81,13 @@ Specify the index of input device to be used.
 If not provided, the default system input is used.  
 Run `WLEDAudioSyncRTBeat list` to get all available devices.
 
+### `-c`/`--custom`
+Specify name to use for specific BPM calculation
+e.g. GMA3  : GrandMA3 does not expect the absolute value for BPM.
+Instead, it handles the BPM based on percent of the SpeedMaster-Fader, where 100% are 240 BPM.
+which modifies the measured BPM with this formula "sqrt(bpm/240)*100"
+
+
 ## Example
 
 ```
