@@ -5,6 +5,7 @@ import signal
 import os
 import time
 import sys
+import math
 
 import argparse
 
@@ -36,6 +37,9 @@ beat_parser.add_argument("-v", "--verbose",
 beat_parser.add_argument("-d", "--device",
                          help="Input device index (use list command to see available devices)",
                          default=None, type=int)
+beat_parser.add_argument("-c", "--custom",
+                         help="Calculate BPM according custom algo. e.g. GMA3 for GranMA3",
+                         default=None, type=str)
 
 list_parser = sp.add_parser("list",
                             help="Print a list of all available audio devices")
@@ -46,6 +50,7 @@ class BeatPrinter:
     def __init__(self):
         self.state: int = 0
         self.spinner = "¼▚▞▚"
+
     def print_bpm(self, bpm: float, dbs: float) -> None:
         print(f"{self.spinner[self.state]}\t{bpm:.1f} BPM\t{dbs:.1f} dB")
         self.state = (self.state + 1) % len(self.spinner)
@@ -93,12 +98,17 @@ class BeatDetector:
         if beat[0]:
             # volume level in db
             dbs = aubio.db_spl(aubio.fvec(audio_data))
+            bpm = self.tempo.get_bpm()
+
+            if args.custom:
+                if args.custom == 'GMA3':
+                    bpm = math.sqrt(bpm / 240) * 100
 
             if args.verbose:
-                self.spinner.print_bpm(self.tempo.get_bpm(), dbs)
+                self.spinner.print_bpm(bpm, dbs)
 
             for server in self.osc_servers:
-                server[0].send_message(server[1], self.tempo.get_bpm())
+                server[0].send_message(server[1], bpm)
 
         return None, pyaudio.paContinue  # Tell pyAudio to continue
 
@@ -149,7 +159,7 @@ def main():
             while True:
                 time.sleep(1)
         else:
-            signal.pause()        
+            signal.pause()
     else:
         print('Nothing to do. Use -h for help')
 

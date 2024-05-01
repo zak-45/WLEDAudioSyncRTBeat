@@ -48,7 +48,7 @@ python WLEDAudioSyncRTBeat.py
 ## Usage
 
 ```
-WLEDAudioSyncRTBeat-{OS} beat|list [-h] -s IP PORT ADDRESS [-b BUFSIZE] [-v] [-d DEVICE]
+WLEDAudioSyncRTBeat-{OS} beat|list [-h] -s IP PORT ADDRESS [-b BUFSIZE] [-v] [-d DEVICE] [-c CUSTOM]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -60,6 +60,8 @@ optional arguments:
   -d DEVICE, --device DEVICE
                         Input device index (use list command to see available devices)
 
+  -c CUSTOM, --custom CUSTOM 
+                        To use custom algorythm for BPM e.g. GMA3: GrandMA3 need sqrt(bpm/240)*100 
 ```
 
 ### `-s`/`--server`
