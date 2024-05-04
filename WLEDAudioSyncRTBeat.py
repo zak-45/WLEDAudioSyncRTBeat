@@ -6,6 +6,7 @@ import os
 import time
 import sys
 import math
+import ipaddress
 
 import argparse
 
@@ -18,6 +19,7 @@ class ServerInfo(NamedTuple):
     ip: str
     port: int
     address: str
+    mode: str = None
 
 
 parser = argparse.ArgumentParser()
@@ -26,9 +28,14 @@ sp = parser.add_subparsers(dest="command")
 beat_parser = sp.add_parser("beat",
                             help="Start beat detection")
 beat_parser.add_argument("-s", "--server",
-                         help="OSC Server address (multiple can be provided)", nargs=3,
-                         action="append",
-                         metavar=("IP", "PORT", "ADDRESS"), required=True)
+                         help="OSC Server address (multiple can be provided) in format 'IP' 'PORT' 'PATH' 'MODE', "
+                              "Mode PLAIN for plain BPM-Value,Mode HALF for half of BPM-Value, "
+                              "Mode GMA3 for GrandMA3 Speed masters where 100 percent is for 240BPM. "
+                              "  MODE is optional and default to PLAIN"
+                              " e.g. 127.0.0.1 12000 /test GMA3",
+                         nargs='*',
+                         action="append"
+                         )
 beat_parser.add_argument("-b", "--bufsize",
                          help="Size of audio buffer for beat detection (default: 512)", default=512,
                          type=int)
@@ -37,9 +44,6 @@ beat_parser.add_argument("-v", "--verbose",
 beat_parser.add_argument("-d", "--device",
                          help="Input device index (use list command to see available devices)",
                          default=None, type=int)
-beat_parser.add_argument("-c", "--custom",
-                         help="Calculate BPM according custom algo. e.g. GMA3 for GranMA3",
-                         default=None, type=str)
 
 list_parser = sp.add_parser("list",
                             help="Print a list of all available audio devices")
@@ -99,16 +103,24 @@ class BeatDetector:
             # volume level in db
             dbs = aubio.db_spl(aubio.fvec(audio_data))
             bpm = self.tempo.get_bpm()
-
-            if args.custom:
-                if args.custom == 'GMA3':
-                    bpm = math.sqrt(bpm / 240) * 100
+            # recalculate half BPM
+            bpmh = bpm / 2
+            # recalculate BPM for GrandMA3
+            bpmg = math.sqrt(bpm / 240) * 100
 
             if args.verbose:
                 self.spinner.print_bpm(bpm, dbs)
 
-            for server in self.osc_servers:
-                server[0].send_message(server[1], bpm)
+            for server, server_info in zip(self.osc_servers, self.server_info):
+                mode = server_info.mode
+                if mode is None:
+                    mode = 'plain'
+                if mode.lower() == "half":
+                    server[0].send_message(server[1], bpmh)
+                elif mode.lower() == "gma3":
+                    server[0].send_message(server[1], bpmg)
+                else:
+                    server[0].send_message(server[1], bpm)
 
         return None, pyaudio.paContinue  # Tell pyAudio to continue
 
@@ -134,13 +146,43 @@ def list_devices():
 
 # main
 def main():
+
     if args.command == "list":
         list_devices()
         return
 
     if args.command == "beat":
-        # Pack data from arguments into ServerInfo objects
-        server_info: List[ServerInfo] = [ServerInfo(x[0], int(x[1]), x[2]) for x in args.server]
+        # Ensure at least 3 arguments are provided for server
+        if args.server is None:
+            parser.error('At least 3 server arguments are required ("IP","PORT","PATH")')
+
+        # select 4 args
+        server_info_4: List[ServerInfo] = [ServerInfo(x[0], int(x[1]), x[2], x[3]) for x in args.server if len(x) == 4]
+        # select 3 args
+        server_info_3: List[ServerInfo] = [ServerInfo(x[0], int(x[1]), x[2]) for x in args.server if len(x) == 3]
+        # final
+        server_info = server_info_3 + server_info_4
+
+        # some checks
+        for x in args.server:
+            if len(x) < 3:
+                parser.error('At least 3 server arguments are required ("IP","PORT","PATH")')
+                sys.exit(1)
+            elif len(x) > 4:
+                parser.error('More than 4 arguments provided for server')
+                sys.exit(2)
+
+        for item in server_info:
+            # now check validate arguments
+            try:
+                ipaddress.ip_address(item.ip)
+            except ValueError:
+                print(f'Not a valid IP address: {item.ip}')
+                sys.exit(3)
+
+            if not item.address.startswith('/'):
+                print(f'PATH {item.address} not valid, need to start with "/"')
+                sys.exit(4)
 
         bd = BeatDetector(args.bufsize, server_info)
 
