@@ -52,16 +52,15 @@ WLEDAudioSyncRTBeat-{OS} beat|list [-h] -s IP PORT ADDRESS [-b BUFSIZE] [-v] [-d
 
 optional arguments:
   -h, --help            show this help message and exit
-  -s IP PORT ADDRESS, --server IP PORT ADDRESS
+  -s IP PORT ADDRESS MODE, --server IP PORT ADDRESS
                         OSC Server address (multiple can be provided)
+                        MODE can be PLAIN (bpm), HALF (bpm / 2), GMA3 sqrt(bpm / 240) * 100, default to PLAIN
   -b BUFSIZE, --bufsize BUFSIZE
                         Size of audio buffer for beat detection (default: 512)
   -v, --verbose         Print BPM on beat / dB
   -d DEVICE, --device DEVICE
                         Input device index (use list command to see available devices)
 
-  -c CUSTOM, --custom CUSTOM 
-                        To use custom algorythm for BPM e.g. GMA3: GrandMA3 need sqrt(bpm/240)*100 
 ```
 
 ### `-s`/`--server`
@@ -91,11 +90,11 @@ which modifies the measured BPM with this formula "sqrt(bpm/240)*100"
 ## Example
 
 ```
-$ WLEDAudioSyncRTBeat-Linux beat -s 127.0.0.1 12000 /WLEDAudioSync/BPM -s 10.10.13.37 12345 /test/baz -v
+$ WLEDAudioSyncRTBeat-Linux beat -s 127.0.0.1 12000 /WLEDAudioSync/BPM -s 10.10.13.37 12345 /test/baz GMA3 -v
 ```
 
 This will send beat messages to the OSC address `/WLEDAudioSync/BPM ` on `127.0.0.1:12000` and `/test/baz` on `10.10.13.37:12345`.
-Additionally the current BPM will be printed to stdout.
+Additionally, the current BPM will be printed to stdout, and for 10.10.13.37 will send GMA3 bpm value
 
 ## Info 
 
