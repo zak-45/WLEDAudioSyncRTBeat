@@ -78,7 +78,7 @@ jobs:
           file-version: ${{github.event.inputs.mytag}}
           windows-icon-from-ico: assets/WLEDAudioSync30.ico
           macos-app-icon: assets/WLEDAudioSync30.ico
-          onefile: true
+          mode: onefile
           onefile-tempdir-spec: ./WLEDAudioSyncRTBeat
           output-file: WLEDAudioSyncRTBeat-${{runner.os}}
 
