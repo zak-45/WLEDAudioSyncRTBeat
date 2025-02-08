@@ -53,7 +53,8 @@ jobs:
         run: |
           brew update
           brew install portaudio
-          brew reinstall libsndfile         
+          brew reinstall libsndfile
+          brew install aubio --with-python
          
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -69,7 +70,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: Build Executable for ${{runner.os}}
-        uses: Nuitka/Nuitka-Action@v1.0
+        uses: Nuitka/Nuitka-Action@vmain
         with:
           nuitka-version: main
           script-name: WLEDAudioSyncRTBeat.py
