@@ -54,7 +54,7 @@ jobs:
           brew update
           brew install portaudio
           brew reinstall libsndfile
-          brew install aubio --with-python
+          brew install aubio
          
       - name: Setup Python
         uses: actions/setup-python@v4
