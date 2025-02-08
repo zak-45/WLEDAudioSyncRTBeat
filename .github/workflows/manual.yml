@@ -29,7 +29,6 @@ jobs:
       DEBUG_COMPILATION: yes
       COMP_VERSION: ${{github.event.inputs.mytag}}
       CFLAGS: -Wno-incompatible-function-pointer-types
-      PYTHONPATH: /opt/homebrew/opt/libsndfile/lib:$PYTHONPATH
       
     strategy:
       matrix:
@@ -56,7 +55,10 @@ jobs:
           brew update
           brew install portaudio
           brew reinstall libsndfile
+          echo "PYTHONPATH=/opt/homebrew/opt/libsndfile/lib:\$PYTHONPATH" >> $GITHUB_ENV
   
+      - name: Verify PYTHONPATH
+        run: echo $PYTHONPATH
          
       - name: Setup Python
         uses: actions/setup-python@v4
