@@ -28,7 +28,6 @@ jobs:
     env:
       DEBUG_COMPILATION: yes
       COMP_VERSION: ${{github.event.inputs.mytag}}
-      CFLAGS: -Wno-incompatible-function-pointer-types
       
     strategy:
       matrix:
@@ -59,6 +58,7 @@ jobs:
         # export CFLAGS="-Wno-incompatible-function-pointer-types"
         #           brew install aubio
         run: |
+          echo "CFLAGS=-Wno-incompatible-function-pointer-types" >> $GITHUB_ENV
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV         
           brew update
