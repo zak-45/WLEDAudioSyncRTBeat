@@ -24,6 +24,12 @@ jobs:
   build:
     permissions:
       contents: write
+      
+    env:
+      DEBUG_COMPILATION: yes
+      COMP_VERSION: ${{github.event.inputs.mytag}}
+      CFLAGS: -Wno-incompatible-function-pointer-types
+      
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -43,12 +49,11 @@ jobs:
 
       - name: MacOS specific
         if: matrix.os == 'macos-latest'
+        # export CFLAGS="-Wno-incompatible-function-pointer-types"
         run: |
           brew update
           brew install portaudio
-          brew reinstall libsndfile
-          export CFLAGS="-Wno-incompatible-function-pointer-types"
-          
+          brew reinstall libsndfile         
          
       - name: Setup Python
         uses: actions/setup-python@v4
