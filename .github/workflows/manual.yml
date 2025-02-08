@@ -40,9 +40,16 @@ jobs:
       - name: Check-out repository
         uses: actions/checkout@v3
 
+      - name: Windows specific
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "ARCHITECTURE=amd64" >> $GITHUB_ENV
+
       - name: Ubuntu specific
         if: matrix.os == 'ubuntu-latest'
         run: |
+          ARCHITECTURE=$(uname -m)
+          echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV 
           sudo apt-get update
           sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
           sudo apt-get install ffmpeg
@@ -52,6 +59,8 @@ jobs:
         # export CFLAGS="-Wno-incompatible-function-pointer-types"
         #           brew install aubio
         run: |
+          ARCHITECTURE=$(uname -m)
+          echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV         
           brew update
           brew install portaudio
           brew reinstall libsndfile
@@ -84,14 +93,14 @@ jobs:
           macos-app-icon: assets/WLEDAudioSync30.ico
           mode: onefile
           onefile-tempdir-spec: ./WLEDAudioSyncRTBeat
-          output-file: WLEDAudioSyncRTBeat-${{runner.os}}
+          output-file: WLEDAudioSyncRTBeat-${{runner.os}}_${{ env.ARCHITECTURE }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDAudioSyncRTBeat-${{runner.os}}**'
+          path: 'build/WLEDAudioSyncRTBeat-${{runner.os}}_${{ env.ARCHITECTURE }}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -99,5 +108,5 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDAudioSyncRTBeat-${{runner.os}}**'
+          artifacts: 'build/WLEDAudioSyncRTBeat-${{runner.os}}_${{ env.ARCHITECTURE }}**'
           
