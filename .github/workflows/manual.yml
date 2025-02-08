@@ -55,6 +55,7 @@ jobs:
           brew update
           brew install portaudio
           brew reinstall libsndfile
+          export PYTHONPATH=/opt/homebrew/opt/libsndfile/lib:$PYTHONPATH
 
          
       - name: Setup Python
