@@ -56,7 +56,7 @@ jobs:
           brew update
           brew install portaudio
           brew reinstall libsndfile
-          echo "PYTHONPATH=/opt/homebrew/opt/opus/lib:/opt/homebrew/opt/libsndfile/lib:/opt/homebrew/opt/portaudio/lib:/opt/homebrew/opt/libogg/lib:/opt/homebrew/opt/libvorbis/lib:/opt/homebrew/opt/lame/lib:/opt/homebrew/opt/flac/lib:/opt/homebrew/opt/mpg123/lib:$PYTHONPATH" >> $GITHUB_ENV
+          echo "PYTHONPATH=/opt/homebrew/Cellar/libvorbis/1.3.7/lib:/opt/homebrew/opt/opus/lib:/opt/homebrew/opt/libsndfile/lib:/opt/homebrew/opt/portaudio/lib:/opt/homebrew/opt/libogg/lib:/opt/homebrew/opt/libvorbis/lib:/opt/homebrew/opt/lame/lib:/opt/homebrew/opt/flac/lib:/opt/homebrew/opt/mpg123/lib:$PYTHONPATH" >> $GITHUB_ENV
   
       - name: Verify PYTHONPATH
         run: echo $PYTHONPATH
