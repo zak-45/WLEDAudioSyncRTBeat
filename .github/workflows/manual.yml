@@ -50,11 +50,12 @@ jobs:
       - name: MacOS specific
         if: matrix.os == 'macos-latest'
         # export CFLAGS="-Wno-incompatible-function-pointer-types"
+        #           brew install aubio
         run: |
           brew update
           brew install portaudio
           brew reinstall libsndfile
-          brew install aubio
+
          
       - name: Setup Python
         uses: actions/setup-python@v4
