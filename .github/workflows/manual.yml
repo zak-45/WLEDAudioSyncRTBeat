@@ -51,7 +51,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          python-version: '3.12' # Version range or exact version of a Python version to use, using SemVer's version range syntax
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
           cache: 'pip'
           cache-dependency-path: |
@@ -64,7 +64,7 @@ jobs:
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@v1.0
         with:
-          nuitka-version: 1.8.5
+          nuitka-version: main
           script-name: WLEDAudioSyncRTBeat.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
