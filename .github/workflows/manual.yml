@@ -32,7 +32,8 @@ jobs:
       
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+      #os: [macos-latest, ubuntu-latest, windows-latest]
+       os: [macos-latest] 
         
     runs-on: ${{matrix.os}}
    
@@ -55,7 +56,7 @@ jobs:
           brew update
           brew install portaudio
           brew reinstall libsndfile
-          echo "PYTHONPATH=/opt/homebrew/opt/libsndfile/lib:/opt/homebrew/opt/portaudio/lib/:\$PYTHONPATH" >> $GITHUB_ENV
+          echo "PYTHONPATH=/opt/homebrew/opt/libsndfile/lib:/opt/homebrew/opt/portaudio/lib:/opt/homebrew/opt/libogg/lib:$PYTHONPATH" >> $GITHUB_ENV
   
       - name: Verify PYTHONPATH
         run: echo $PYTHONPATH
