@@ -37,6 +37,7 @@ Some antivirus software may flag the executable as a potential threat. This is a
     ```
     pip install -r requirements.txt
     ```
+    *(Note: This will install `pyaudio`, `numpy`, `aubio`, `python-osc`, and `keyboard`.)*
 
 2.  Download the `WLEDAudioSyncRTBeat.py` file and run it:
     ```
@@ -93,6 +94,11 @@ Realtime Audio Beat Detector with OSC output.
     *   `PORT`: The port of the OSC server.
     *   `ADDRESS`: The OSC path (e.g., `/wled/bpm`).
     *   `MODE` (Optional): Can be `PLAIN` (the final BPM), `HALF` (BPM / 2), or `GMA3` (a specific curve for GrandMA3 lighting software). Defaults to `PLAIN`.
+
+### Interactive Controls
+
+`u` key
+:   Press the `u` key at any time to manually trigger a BPM re-learning phase. This is useful if you feel the tempo is incorrect or during a song transition.
 
 ## Example
 

@@ -3,3 +3,4 @@ aubio-ledfx
 python-osc
 numpy
 imageio
+keyboard

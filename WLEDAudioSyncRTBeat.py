@@ -8,6 +8,7 @@ import ipaddress
 import argparse
 import signal
 import os
+import keyboard
 from typing import List, NamedTuple, Tuple
 from collections import deque
 
@@ -113,6 +114,15 @@ class BeatDetector:
             frames_per_buffer=self.buf_size,
             stream_callback=self._pyaudio_callback
         )
+
+    def trigger_relearn(self):
+        """Manually triggers the BPM learning phase."""
+        # Only trigger if music is playing and we are not already learning
+        if self.is_playing and not self.is_learning:
+            self.is_learning = True
+            self.listening_start_time = time.time()
+            self.learning_phase_beats.clear()
+            print(f"\n[Manual Trigger] Re-learning BPM... (current: {self.last_bpm:.1f})")
 
     def _pyaudio_callback(self, in_data, frame_count, time_info, status):
         try:
@@ -385,6 +395,9 @@ if __name__ == "__main__":
                                 doubling_confidence_threshold=args.double_confidence, buf_size=args.bufsize,
                                 raw_bpm_mode=args.raw_bpm, relearn_interval=args.relearn_interval)
 
+        # Set up the hotkey for manual re-learning
+        keyboard.add_hotkey('u', detector.trigger_relearn)
+        print("Press 'u' at any time to manually trigger BPM re-learning.")
 
         # Keep the main thread alive until Ctrl+C
         def signal_handler(signum, frame):
