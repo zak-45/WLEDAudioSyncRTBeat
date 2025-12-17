@@ -1,5 +1,5 @@
 pyaudio
-aubio
+aubio-ledfx
 python-osc
 numpy
 imageio
