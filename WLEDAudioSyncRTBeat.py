@@ -397,7 +397,7 @@ if __name__ == "__main__":
                                 raw_bpm_mode=args.raw_bpm, relearn_interval=args.relearn_interval)
 
         # Set up the hotkey for manual re-learning
-        if os.name != 'darwin':
+        if sys.platform != 'darwin':
             keyboard.add_hotkey('u', detector.trigger_relearn)
             print("Press 'u' at any time to manually trigger BPM re-learning.")
 
