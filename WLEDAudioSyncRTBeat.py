@@ -8,11 +8,12 @@ import ipaddress
 import argparse
 import signal
 import os
-import keyboard
 from typing import List, NamedTuple, Tuple
 from collections import deque
 
 from pythonosc.udp_client import SimpleUDPClient
+if sys.platform != 'darwin':
+    import keyboard
 
 CHANNELS = 1  # Mono audio
 FORMAT = pyaudio.paFloat32  # 32-bit float format, ideal for aubio
@@ -396,8 +397,9 @@ if __name__ == "__main__":
                                 raw_bpm_mode=args.raw_bpm, relearn_interval=args.relearn_interval)
 
         # Set up the hotkey for manual re-learning
-        keyboard.add_hotkey('u', detector.trigger_relearn)
-        print("Press 'u' at any time to manually trigger BPM re-learning.")
+        if os.name != 'darwin':
+            keyboard.add_hotkey('u', detector.trigger_relearn)
+            print("Press 'u' at any time to manually trigger BPM re-learning.")
 
         # Keep the main thread alive until Ctrl+C
         def signal_handler(signum, frame):
