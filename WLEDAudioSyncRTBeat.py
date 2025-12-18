@@ -68,13 +68,18 @@ class BeatDetector:
         self.avg_db_level = -120.0
         self.last_bpm = 0.0
         self.last_raw_bpm = 0.0  # Store the last raw BPM for consistent printing
-        self.bpm_history = deque(maxlen=5)  # History of recent BPMs to make smarter decisions, for future use
+        self.bpm_history = deque(maxlen=5)  # History of recent BPMs to make smarter decisions
+        self.bpm_history_raw = deque(maxlen=5)  # History of recent raw BPMs to make smarter decisions
         self.sound_counter = 0
         self.silence_counter = 0
         self.last_update_time = 0.0
         self.listening_start_time = 0.0
         self.learning_phase_beats = []  # Store initial beats to make a better first guess
         self.last_relearn_time = 0.0  # Track time for periodic re-learning
+        # --- Sanity Check State ---
+        self.sanity_check_beats = 0
+        self.sanity_check_start_time = 0.0
+
         self.last_callback_time = time.time()  # For watchdog timer
 
         # --- Constants ---
@@ -85,6 +90,8 @@ class BeatDetector:
         self.update_interval = 0.5
         self.listening_timeout = 8.0  # Seconds to wait in "Listening" before resetting
         self.learning_beats_needed = 5  # Number of beats to collect before making a decision
+        self.sanity_check_beats_needed = 10  # Number of beats to count for the sanity check
+        self.sanity_check_window = 10.0  # Max seconds for the sanity check window
         self.watchdog_timeout = 2.0  # Seconds of no callbacks before forcing silence
 
         # --- Printing ---
@@ -169,6 +176,9 @@ class BeatDetector:
                         self.is_learning = False  # Reset learning phase on silence
                         self.learning_phase_beats.clear()  # CRITICAL: Reset the learning beats
                         self.bpm_history.clear()
+                        self.sanity_check_beats = 0  # Reset sanity check on silence
+                        self.sanity_check_start_time = 0.0
+                        self.bpm_history_raw.clear()
                         self.listening_start_time = 0.0  # Reset listening timer
                         self.send_bpm_osc(0.0)
 
@@ -191,12 +201,19 @@ class BeatDetector:
                     # Check for listening timeout
                     if (time.time() - self.listening_start_time) > self.listening_timeout:
                         # We've been listening for too long without finding a beat, assume silence
-                        self.is_playing = False
                         self.is_learning = False  # Exit learning phase
-                        self.bpm_history.clear()
                         self.listening_start_time = 0.0
-                        self.send_bpm_osc(0.0)
-                        print(f"Listening timed out... Reverting to silent.                              \r")
+                        # If we were re-learning, we keep the last BPM. If we were starting from scratch, we go silent.
+                        if self.last_bpm < 40.0:
+                            self.is_playing = False
+                            self.bpm_history.clear()
+                            self.sanity_check_beats = 0
+                            self.sanity_check_start_time = 0.0
+                            self.bpm_history_raw.clear()
+                            self.send_bpm_osc(0.0)
+                            print(f"Listening timed out... Reverting to silent.                              \r")
+                        else:
+                            print(f"Re-learning timed out. Reverting to last BPM: {self.last_bpm:.1f}              \r")
                         # sys.stdout.write(f"Listening timed out... Reverting to silent.\r")
                     else:
                         # During the initial learning phase, we print "Listening..."
@@ -210,6 +227,12 @@ class BeatDetector:
                     # Only process beats that meet the general confidence threshold
                     if current_confidence > self.confidence_threshold:
                         detected_bpm = self.tempo.get_bpm()
+
+                        # Start the sanity check timer on the first confident beat of a new window
+                        if self.sanity_check_start_time == 0.0:
+                            self.sanity_check_start_time = time.time()
+                        self.sanity_check_beats += 1
+
                         self.last_raw_bpm = detected_bpm  # Store the raw value at the moment of detection
                         new_bpm = detected_bpm
 
@@ -220,7 +243,9 @@ class BeatDetector:
                             if len(self.learning_phase_beats) >= self.learning_beats_needed:
                                 # We have enough beats, calculate the hypothetic BPM
                                 median_bpm = np.median(self.learning_phase_beats)
-                                if 60 <= median_bpm < 110:
+
+                                # Anti demi-tempo robuste
+                                if median_bpm < 110:
                                     new_bpm = median_bpm * 2
                                 else:
                                     new_bpm = median_bpm
@@ -228,17 +253,54 @@ class BeatDetector:
                                 # Exit learning phase and seed the history
                                 self.is_learning = False
                                 self.bpm_history.clear()
+                                self.bpm_history_raw.clear()
                                 self.bpm_history.append(new_bpm)
+                                self.bpm_history_raw.append(detected_bpm)
                                 self.last_relearn_time = time.time()  # Reset timer after learning is complete
                                 self.last_bpm = new_bpm  # Immediately set the BPM to the corrected median
+
                         elif not self.raw_bpm_mode and len(self.bpm_history) > 1:
                             # --- Stable Phase: Use history for correction ---
+                            print('stable phase')
                             recent_avg = np.mean(list(self.bpm_history))
                             candidates = [detected_bpm, detected_bpm * 2, detected_bpm / 2]
                             new_bpm = min(candidates, key=lambda c: abs(c - recent_avg) * (
                                 1.0 if abs(c - detected_bpm) < 1 else 1.5))
 
-                        if new_bpm > 0: self.bpm_history.append(new_bpm)
+                            recent_avg_raw = np.mean(list(self.bpm_history_raw))
+
+                            # Anti demi-tempo robuste
+                            if recent_avg_raw < 110:
+                                new_bpm = recent_avg_raw * 2
+
+                        # --- Sanity Check Override ---
+                        # This runs after the main heuristics to catch persistent half-time errors.
+                        time_since_check_start = time.time() - self.sanity_check_start_time
+                        if self.sanity_check_beats >= self.sanity_check_beats_needed and time_since_check_start > 0:
+                            # Calculate real-world BPM based on beat frequency
+                            real_world_bpm = (self.sanity_check_beats / time_since_check_start) * 60
+                            # print(real_world_bpm)
+
+                            # If the real-world BPM is roughly double our locked BPM, we have a half-time error
+                            if self.last_bpm > 40 and abs((real_world_bpm / 2) - self.last_bpm) < 15:  # Use a generous threshold
+                                print(f"\n[Sanity Check] Half-time error detected! Correcting {self.last_bpm:.1f} -> {self.last_bpm * 2:.1f}")
+                                # Force a correction and reset history to re-stabilize at the new tempo
+                                new_bpm = self.last_bpm * 2
+                                self.bpm_history.clear()
+                                self.bpm_history_raw.clear()
+
+                            # Reset the sanity check for the next window
+                            self.sanity_check_beats = 0
+                            self.sanity_check_start_time = 0.0
+
+                        # Also reset if the window has been open for too long (e.g., on very slow music)
+                        elif self.sanity_check_start_time > 0 and time_since_check_start > self.sanity_check_window:
+                            self.sanity_check_beats = 0
+                            self.sanity_check_start_time = 0.0
+
+                        if new_bpm > 0:
+                            self.bpm_history.append(new_bpm)
+                            self.bpm_history_raw.append(detected_bpm)
 
                         if self.raw_bpm_mode:
                             self.last_bpm = new_bpm
@@ -252,7 +314,6 @@ class BeatDetector:
 
                     if self.last_bpm > 0:  # This check is now just for printing
                         spinner_char = self.spinner.get_char()
-                        # print('into printing')
                         sys.stdout.write(
                             f"{spinner_char} BPM: {self.last_bpm:.1f} | Level: {self.avg_db_level:.1f} dB  | {self.last_raw_bpm:.1f}  | {self.tempo.get_bpm():.1f}  | {current_confidence:.1f} \r")
 
