@@ -52,7 +52,7 @@ def list_devices(p: pyaudio.PyAudio):
 class BeatDetector:
     def __init__(self, device_index: int = None, silence_threshold: float = -60.0, server_info: List[ServerInfo] = None,
                  confidence_threshold: float = 0.2, doubling_confidence_threshold: float = 0.5, buf_size: int = 1024,
-                 raw_bpm_mode: bool = False, relearn_interval: int = 0):
+                 raw_bpm_mode: bool = False, relearn_interval: int = 0, doubling_threshold: float = 100.0):
         self.device_index = device_index
         self.silence_threshold = silence_threshold
         self.server_info = server_info
@@ -61,6 +61,7 @@ class BeatDetector:
         self.doubling_confidence_threshold = doubling_confidence_threshold
         self.raw_bpm_mode = raw_bpm_mode
         self.relearn_interval = relearn_interval
+        self.doubling_threshold = doubling_threshold
 
         # --- State Management ---
         self.is_playing = False
@@ -245,7 +246,7 @@ class BeatDetector:
                                 median_bpm = np.median(self.learning_phase_beats)
 
                                 # Anti demi-tempo robuste
-                                if median_bpm < 110:
+                                if median_bpm < self.doubling_threshold:
                                     new_bpm = median_bpm * 2
                                 else:
                                     new_bpm = median_bpm
@@ -270,7 +271,7 @@ class BeatDetector:
                             recent_avg_raw = np.mean(list(self.bpm_history_raw))
 
                             # Anti demi-tempo robuste
-                            if recent_avg_raw < 110:
+                            if recent_avg_raw < self.doubling_threshold:
                                 new_bpm = recent_avg_raw * 2
 
                         # --- Sanity Check Override ---
@@ -381,6 +382,8 @@ if __name__ == "__main__":
                         help="The confidence threshold for beat detection (0.0 to 1.0, default: 0.2).")
     parser.add_argument("--double-confidence", type=float, default=0.5,
                         help="The confidence threshold required to trigger the half-time doubling heuristic (default: 0.5).")
+    parser.add_argument("-dt", "--doubling-threshold", type=float, default=100.0,
+                        help="The BPM threshold below which the script will consider doubling the tempo (default: 100.0).")
     # Increased default buffer size for better accuracy on complex audio
     parser.add_argument("-b", "--bufsize", type=int, default=1024,
                         help="Size of the audio buffer for analysis (powers of 2 are best, e.g., 1024, 2048). Default: 1024.")
@@ -455,7 +458,8 @@ if __name__ == "__main__":
         detector = BeatDetector(device_index=args.device, silence_threshold=args.silence_threshold,
                                 server_info=server_info, confidence_threshold=args.confidence,
                                 doubling_confidence_threshold=args.double_confidence, buf_size=args.bufsize,
-                                raw_bpm_mode=args.raw_bpm, relearn_interval=args.relearn_interval)
+                                raw_bpm_mode=args.raw_bpm, relearn_interval=args.relearn_interval,
+                                doubling_threshold=args.doubling_threshold)
 
         # Set up the hotkey for manual re-learning
         if sys.platform != 'darwin':
