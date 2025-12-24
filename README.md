@@ -9,7 +9,7 @@ This is a feature of [WLEDAudioSync Chataigne Module](https://github.com/zak-45/
 
 You can see a demo here : [WLEDAudioSyncRTBeat demo](https://youtu.be/VXM_zEzKo6M)
 
-Chataigne view:
+Chataigne OSC Server view:
 
 ![image](https://github.com/zak-45/WLEDAudioSyncRTBeat/assets/121941293/89b89dbf-49bb-410e-8d7b-2c43357c5100)
 
