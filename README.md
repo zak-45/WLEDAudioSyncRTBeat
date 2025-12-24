@@ -49,7 +49,7 @@ Some antivirus software may flag the executable as a potential threat. This is a
 The script can be launched with the `run` command (which is the default) or the `list` command to see audio devices.
 
 ```
-usage: WLEDAudioSyncRTBeat.py [-h] [-d DEVICE] [-st SILENCE_THRESHOLD] [-c CONFIDENCE] [--double-confidence DOUBLE_CONFIDENCE] [-b BUFSIZE] [--relearn-interval RELEARN_INTERVAL] [--raw-bpm] [-s IP PORT ADDRESS [MODE]] [{run,list}] ...
+usage: WLEDAudioSyncRTBeat.py [-h] [-d DEVICE] [-st SILENCE_THRESHOLD] [-c CONFIDENCE] [--double-confidence DOUBLE_CONFIDENCE] [--doubling-threshold DOUBLING_THRESHOLD] [-b BUFSIZE] [--relearn-interval RELEARN_INTERVAL] [--raw-bpm] [-s IP PORT ADDRESS [MODE]] [{run,list}] ...
 
 Realtime Audio Beat Detector with OSC output.
 ```
@@ -78,6 +78,9 @@ Realtime Audio Beat Detector with OSC output.
 
 `--double-confidence DOUBLE_CONFIDENCE`
 :   The higher confidence threshold (0.0 to 1.0) required to trigger the more aggressive half-time doubling heuristic. Default: `0.5`.
+
+`-dt DOUBLING_THRESHOLD, --doubling-threshold DOUBLING_THRESHOLD` 
+:   The BPM threshold below which the script will consider doubling the tempo to correct for half-time errors. Default: `100.0`.
 
 `-b BUFSIZE, --bufsize BUFSIZE`
 :   The size of the audio buffer for analysis. Larger values (e.g., 2048) can improve accuracy on complex music at the cost of slightly higher latency. Powers of 2 are optimal (512, 1024, 2048). Default: `1024`.
