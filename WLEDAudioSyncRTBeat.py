@@ -1,9 +1,7 @@
 import pyaudio
 import numpy as np
 import aubio  # Ledfx fork for better accuracy
-import time
 import sys
-import math
 import ipaddress
 import argparse
 import signal
@@ -15,9 +13,58 @@ from pythonosc.udp_client import SimpleUDPClient
 if sys.platform != 'darwin':
     import keyboard
 
+import threading
+import queue
+import time
+import math
+
 CHANNELS = 1  # Mono audio
 FORMAT = pyaudio.paFloat32  # 32-bit float format, ideal for aubio
 
+
+class OSCDispatcher:
+    """
+    Thread-safe dispatcher pour envoyer les messages OSC et faire l'affichage.
+    - Receives tuples (bpm, avg_db_level, raw_bpm, detected_bpm, confidence)
+    - Envoie via SimpleUDPClient hors du callback audio pour éviter blocage.
+    """
+    def __init__(self, osc_servers: list, server_info: list, print_interval: float = 0.1):
+        self.osc_servers = osc_servers
+        self.server_info = server_info
+        self.q = queue.Queue()
+        self._stop = threading.Event()
+        self.thread = threading.Thread(target=self._run, name="OSCDispatcher", daemon=True)
+        self.thread.start()
+
+    def stop(self):
+        self._stop.set()
+        # wake queue consumer
+        self.q.put(None)
+        self.thread.join(timeout=1.0)
+
+    def send(self, bpm: float):
+        # push minimal immutable data to queue
+        self.q.put(bpm)
+
+    def _run(self):
+        while not self._stop.is_set():
+            item = self.q.get()
+            if item is None:
+                break
+            bpm = item
+            # send OSC messages (non-blocking assumption)
+            if self.osc_servers:
+                bpmh = bpm / 2
+                bpmg = math.sqrt(bpm / 240) * 100 if bpm > 0 else 0.0
+                for (client, path), s_info in zip(self.osc_servers, self.server_info):
+                    mode = (s_info.mode or 'plain').lower()
+                    value = {'plain': bpm, 'half': bpmh, 'gma3': bpmg}.get(mode, bpm)
+                    try:
+                        client.send_message(path, value)
+                    except Exception as e:
+                        # swallow or log the exception minimally; do not re-raise
+                        print(f'Error on sending to OSC: {e}')
+                        pass
 
 class BeatPrinter:
     """A simple class to manage the state of a spinning character for printing."""
@@ -103,6 +150,8 @@ class BeatDetector:
         if self.server_info:
             self.osc_servers = [(SimpleUDPClient(x.ip, x.port), x.address) for x in self.server_info]
 
+        self.osc_dispatcher = OSCDispatcher(self.osc_servers, self.server_info) if self.osc_servers else None
+
         # --- PyAudio and Aubio Setup ---
         self.p = pyaudio.PyAudio()
 
@@ -164,7 +213,9 @@ class BeatDetector:
                         self.is_learning = True  # Start in the learning phase
                         self.last_relearn_time = time.time()  # Start the re-learning timer
                         if self.last_bpm > 0:
-                            self.send_bpm_osc(self.last_bpm)
+                            if self.osc_dispatcher:
+                                # no blocking send
+                                self.osc_dispatcher.send(self.last_bpm)
                             self.last_update_time = time.time()
                         self.last_bpm = 0.0
             else:
@@ -181,7 +232,9 @@ class BeatDetector:
                         self.sanity_check_start_time = 0.0
                         self.bpm_history_raw.clear()
                         self.listening_start_time = 0.0  # Reset listening timer
-                        self.send_bpm_osc(0.0)
+                        if self.osc_dispatcher:
+                            # no blocking send
+                            self.osc_dispatcher.send(0.0)
 
             # --- Processing and Printing Logic ---
             if self.is_playing:
@@ -192,7 +245,6 @@ class BeatDetector:
                     self.listening_start_time = time.time()  # Start the re-learning timeout clock
                     self.learning_phase_beats.clear()
                     print(f"Re-learning BPM... (current: {self.last_bpm:.1f})                         \r")
-                    # sys.stdout.write(f"Re-learning BPM... (current: {self.last_bpm:.1f})\r")
 
                 # If we don't have a stable BPM yet, we are in a "Listening" state
                 if self.is_learning:
@@ -211,15 +263,16 @@ class BeatDetector:
                             self.sanity_check_beats = 0
                             self.sanity_check_start_time = 0.0
                             self.bpm_history_raw.clear()
-                            self.send_bpm_osc(0.0)
-                            print(f"Listening timed out... Reverting to silent.                              \r")
+                            if self.osc_dispatcher:
+                                # no blocking send
+                                self.osc_dispatcher.send(0.0)
+                            print(f"Listening timed out... Reverting to silent.                                    \r")
                         else:
                             print(f"Re-learning timed out. Reverting to last BPM: {self.last_bpm:.1f}              \r")
-                        # sys.stdout.write(f"Listening timed out... Reverting to silent.\r")
                     else:
                         # During the initial learning phase, we print "Listening..."
                         if self.last_bpm < 40.0:
-                            sys.stdout.write(f"Listening... | Level: {self.avg_db_level:.1f} dB           \r")
+                            sys.stdout.write(f"Listening... | Level: {self.avg_db_level:.1f} dB                    \r")
 
                 beat = self.tempo(audio_samples)
                 if beat[0]:
@@ -310,7 +363,10 @@ class BeatDetector:
                                         new_bpm * self.bpm_smoothing_factor)
 
                         # CRITICAL: Send OSC message and update printout on every confident beat.
-                        self.send_bpm_osc(self.last_bpm)
+                        if self.osc_dispatcher:
+                            # no blocking send
+                            self.osc_dispatcher.send(self.last_bpm)
+
                         self.last_update_time = time.time()
 
                     if self.last_bpm > 0:  # This check is now just for printing
@@ -321,13 +377,15 @@ class BeatDetector:
                 # Send periodic "keep-alive" updates.
                 # CRITICAL: This now runs even during the re-learning phase to ensure a continuous BPM stream.
                 elif self.last_bpm > 0 and (time.time() - self.last_update_time) > self.update_interval:
-                    self.send_bpm_osc(self.last_bpm)
+                    if self.osc_dispatcher:
+                        # no blocking send
+                        self.osc_dispatcher.send(self.last_bpm)
                     self.last_update_time = time.time()
 
             else:
                 if self.last_bpm != 0.0:
                     self.last_bpm = 0.0
-                sys.stdout.write(f"Silent...                                                                 \r")
+                sys.stdout.write(f"Silent...                                                                      \r")
 
             # No need for flush, stdout is line-buffered by default
         except Exception as e:
@@ -336,39 +394,13 @@ class BeatDetector:
 
         return None, pyaudio.paContinue
 
-    def send_bpm_osc(self, bpm: float):
-        if not self.osc_servers:
-            return
-
-        bpmh = bpm / 2
-        bpmg = math.sqrt(bpm / 240) * 100 if bpm > 0 else 0.0
-
-        for server, s_info in zip(self.osc_servers, self.server_info):
-            mode = s_info.mode or 'plain'
-            value_to_send = {'plain': bpm, 'half': bpmh, 'gma3': bpmg}.get(mode.lower(), bpm)
-            server[0].send_message(server[1], value_to_send)
-
     def stop(self):
         print("\nStopping stream and cleaning up...")
         self.stream.stop_stream()
+        if hasattr(self, 'osc_dispatcher') and self.osc_dispatcher:
+            self.osc_dispatcher.stop()
         self.stream.close()
         self.p.terminate()
-
-
-def send_bpm_osc(bpm: float, osc_servers: List[Tuple[SimpleUDPClient, str]], server_info: List[ServerInfo]):
-    """Calculates different BPM modes and sends them to the configured OSC servers."""
-    if not osc_servers:
-        return
-
-    # recalculate half BPM
-    bpmh = bpm / 2
-    # recalculate BPM for GrandMA3
-    bpmg = math.sqrt(bpm / 240) * 100 if bpm > 0 else 0.0
-
-    for server, s_info in zip(osc_servers, server_info):
-        mode = s_info.mode or 'plain'
-        value_to_send = {'plain': bpm, 'half': bpmh, 'gma3': bpmg}.get(mode.lower(), bpm)
-        server[0].send_message(server[1], value_to_send)
 
 
 if __name__ == "__main__":
