@@ -324,7 +324,8 @@ class BeatDetector:
                             recent_avg_raw = np.mean(list(self.bpm_history_raw))
 
                             # Anti demi-tempo robuste
-                            if recent_avg_raw < self.doubling_threshold:
+                            # Logic with confidence check restored
+                            if recent_avg_raw < self.doubling_threshold and current_confidence > self.doubling_confidence_threshold:
                                 new_bpm = recent_avg_raw * 2
 
                         # --- Sanity Check Override ---
@@ -372,7 +373,7 @@ class BeatDetector:
                     if self.last_bpm > 0:  # This check is now just for printing
                         spinner_char = self.spinner.get_char()
                         sys.stdout.write(
-                            f"{spinner_char} BPM: {self.last_bpm:.1f} | Level: {self.avg_db_level:.1f} dB  | {self.last_raw_bpm:.1f}  | {self.tempo.get_bpm():.1f}  | {current_confidence:.1f} \r")
+                            f"{spinner_char} BPM: {self.last_bpm:.1f} | Level: {self.avg_db_level:.1f} dB  |Last raw: {self.last_raw_bpm:.1f}  | Pure raw: {self.tempo.get_bpm():.1f}  | Conf.: {current_confidence:.1f} \r")
 
                 # Send periodic "keep-alive" updates.
                 # CRITICAL: This now runs even during the re-learning phase to ensure a continuous BPM stream.
