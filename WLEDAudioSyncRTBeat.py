@@ -373,7 +373,11 @@ class BeatDetector:
                     if self.last_bpm > 0:  # This check is now just for printing
                         spinner_char = self.spinner.get_char()
                         sys.stdout.write(
-                            f"{spinner_char} BPM: {self.last_bpm:.1f} | Level: {self.avg_db_level:.1f} dB  |Last raw: {self.last_raw_bpm:.1f}  | Pure raw: {self.tempo.get_bpm():.1f}  | Conf.: {current_confidence:.1f} \r")
+                            f"{spinner_char} BPM: {self.last_bpm:.1f} | "
+                            f"Level: {self.avg_db_level:.1f} dB  | "
+                            f"Last raw: {self.last_raw_bpm:.1f}  | "
+                            f"Pure raw: {self.tempo.get_bpm():.1f}  | "
+                            f"Conf.: {current_confidence:.1f} \r")
 
                 # Send periodic "keep-alive" updates.
                 # CRITICAL: This now runs even during the re-learning phase to ensure a continuous BPM stream.
